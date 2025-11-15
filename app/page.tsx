@@ -10,11 +10,11 @@ const page = () => {
 
   return (
     <div>
-      <Button>
-        <Moon onClick={() => setTheme("dark")}/>
+      <Button onClick={() => setTheme("dark")}>
+        <Moon />
       </Button>
-      <Button>
-        <Sun onClick={() => setTheme("light")}/>
+      <Button onClick={() => setTheme("light")}>
+        <Sun />
       </Button>
     </div>
   );

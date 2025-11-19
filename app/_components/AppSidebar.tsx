@@ -12,7 +12,6 @@ const AppSidebar = () => {
     const { theme, setTheme} = useTheme();
 
 
-     console.log(theme)
   return (
      <Sidebar>
       <SidebarHeader>

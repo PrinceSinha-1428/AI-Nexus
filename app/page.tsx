@@ -1,8 +1,8 @@
 'use client';
 
-import { Button } from "@/components/ui/button";
-import { Moon, Sun } from "lucide-react";
+
 import { useTheme } from "next-themes";
+import ChatInputBox from "./_components/ChatInputBox";
 
 const page = () => {
 
@@ -10,12 +10,7 @@ const page = () => {
 
   return (
     <div>
-      <Button onClick={() => setTheme("dark")}>
-        <Moon />
-      </Button>
-      <Button onClick={() => setTheme("light")}>
-        <Sun />
-      </Button>
+      <ChatInputBox/>
     </div>
   );
 }

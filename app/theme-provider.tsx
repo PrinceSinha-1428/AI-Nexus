@@ -17,7 +17,8 @@ export function ThemeProvider({
   ...props
 }: React.ComponentProps<typeof NextThemesProvider>) {
   const { user } = useUser();
-  const [aiSelectedModel, setAiSelectedModel] = useState<DefaultModelType>(DefaultModel);
+  const [aiSelectedModel, setAiSelectedModel] =
+    useState<DefaultModelType>(DefaultModel);
   const [userDetails, setUserDetails] = useState<any>({});
 
   const createNewUser = async () => {
@@ -26,21 +27,21 @@ export function ThemeProvider({
     if (userSnap.exists()) {
       const userInfo = userSnap.data();
       setAiSelectedModel(userInfo.selectedModelPref);
-      setUserDetails(userInfo)
+      setUserDetails(userInfo);
       return;
     } else {
-    const userData = {
-      name: user?.fullName,
-      email: user?.primaryEmailAddress?.emailAddress,
-      createdAt: new Date(),
-      remainingMsg: 10,
-      plan: "Free",
-      credits: 1000,
-    };
-    await setDoc(userRef, userData);
-    setUserDetails(userData);
+      const userData = {
+        name: user?.fullName,
+        email: user?.primaryEmailAddress?.emailAddress,
+        createdAt: new Date(),
+        remainingMsg: 10,
+        plan: "Free",
+        credits: 1000,
+      };
+      await setDoc(userRef, userData);
+      setUserDetails(userData);
+    }
   };
-};
 
   useEffect(() => {
     if (user) {
@@ -56,16 +57,18 @@ export function ThemeProvider({
       disableTransitionOnChange
       {...props}
     >
-      <UserDetailContext.Provider value={{ userDetails, setUserDetails}}>
-      <AIModelContext.Provider value={{ aiSelectedModel, setAiSelectedModel }}>
-        <SidebarProvider>
-          <AppSidebar />
-          <div className="w-full">
-            <Appheader />
-            {children}
-          </div>
-        </SidebarProvider>
-      </AIModelContext.Provider>
+      <UserDetailContext.Provider value={{ userDetails, setUserDetails }}>
+        <AIModelContext.Provider
+          value={{ aiSelectedModel, setAiSelectedModel }}
+        >
+          <SidebarProvider>
+            <AppSidebar />
+            <div className="w-full">
+              <Appheader />
+              {children}
+            </div>
+          </SidebarProvider>
+        </AIModelContext.Provider>
       </UserDetailContext.Provider>
     </NextThemesProvider>
   );

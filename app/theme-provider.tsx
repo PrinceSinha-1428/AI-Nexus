@@ -2,13 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "./_components/AppSidebar";
 import Appheader from "./_components/Appheader";
 import { useUser } from "@clerk/nextjs";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/config/firebase";
-import { AIModelContext, DefaultModelType } from "@/context/AIModelContext";
+import {
+  AIModelContext,
+  DefaultModelType,
+  MessagesType,
+} from "@/context/AIModelContext";
 import { DefaultModel } from "@/shared/AiModels";
 import { UserDetailContext } from "@/context/UserDetailContext";
 
@@ -20,13 +24,14 @@ export function ThemeProvider({
   const [aiSelectedModel, setAiSelectedModel] =
     useState<DefaultModelType>(DefaultModel);
   const [userDetails, setUserDetails] = useState<any>({});
+  const [messages, setMessages] = useState<MessagesType>({});
 
   const createNewUser = async () => {
     const userRef = doc(db, "users", user?.primaryEmailAddress?.emailAddress!);
     const userSnap = await getDoc(userRef);
     if (userSnap.exists()) {
       const userInfo = userSnap.data();
-      setAiSelectedModel(userInfo.selectedModelPref);
+      setAiSelectedModel(userInfo.selectedModelPref ?? DefaultModel);
       setUserDetails(userInfo);
       return;
     } else {
@@ -43,11 +48,22 @@ export function ThemeProvider({
     }
   };
 
+  const updateAIModelSelection = async () => {
+    const docRef = doc(db, "users", user?.primaryEmailAddress?.emailAddress as string);
+    await updateDoc(docRef, { selectedModelPref: aiSelectedModel });
+  };
+
   useEffect(() => {
     if (user) {
       createNewUser();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (aiSelectedModel && user?.primaryEmailAddress?.emailAddress) {
+      updateAIModelSelection();
+    }
+  }, [aiSelectedModel]);
 
   return (
     <NextThemesProvider
@@ -59,7 +75,7 @@ export function ThemeProvider({
     >
       <UserDetailContext.Provider value={{ userDetails, setUserDetails }}>
         <AIModelContext.Provider
-          value={{ aiSelectedModel, setAiSelectedModel }}
+          value={{ aiSelectedModel, setAiSelectedModel, messages, setMessages }}
         >
           <SidebarProvider>
             <AppSidebar />

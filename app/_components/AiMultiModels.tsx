@@ -12,9 +12,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Lock, MessageSquare } from "lucide-react";
+import { Loader, Lock, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AIModelContext, useAI } from "@/context/AIModelContext";
+import { useAI } from "@/context/AIModelContext";
 import { db } from "@/config/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { useUser } from "@clerk/nextjs";
@@ -22,7 +22,7 @@ import { useUser } from "@clerk/nextjs";
 const AiMultiModels = () => {
   const [aiModelList, setaiModelList] = useState<ModelConfig[]>(AiModels);
 
-  const { aiSelectedModel, setAiSelectedModel } = useAI();
+  const { aiSelectedModel, setAiSelectedModel, messages } = useAI();
   const { user } = useUser();
 
   const onToggleChange = (model: string, value: boolean) => {
@@ -66,13 +66,13 @@ const AiMultiModels = () => {
               />
               {model.enable && (
                 <Select
-                  defaultValue={aiSelectedModel[model.model].modelId}
+                  defaultValue={aiSelectedModel[model.model]?.modelId}
                   onValueChange={(value) => onSelectValue(model.model, value)}
                   disabled={model.premium}
                 >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue
-                      placeholder={aiSelectedModel[model.model].modelId}
+                      placeholder={aiSelectedModel[model.model]?.modelId}
                     />
                   </SelectTrigger>
                   <SelectContent>
@@ -130,6 +130,29 @@ const AiMultiModels = () => {
               </Button>
             </div>
           )}
+          <div className="flex-1 p-4">
+            <div className="flex-1 p-4 space-y-2">
+              {messages[model.model]?.map((m, idx) => (
+                <div
+                  key={idx}
+                  className={`p-2 rounded-md ${m.role === "user" ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900"} `}
+                >
+                  {m.role === "assistant" && (
+                    <span className="text-sm text-gray-300">
+                      {m.model ?? model.model}
+                    </span>
+                  )}
+                  {m.loading && (
+                    <>
+                      <Loader className="animate-spin" />
+                      <span>Thinking...</span>
+                    </>
+                  )}
+                  {!m.loading && <h2>{m.content}</h2>}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       ))}
     </div>

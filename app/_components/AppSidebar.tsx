@@ -5,11 +5,16 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader } f
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const AppSidebar = () => {
 
     const { theme, setTheme} = useTheme();
+    const [mounted, setMounted] = useState<boolean>(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
 
   return (
@@ -22,7 +27,7 @@ const AppSidebar = () => {
               <h2 className='font-bold text-xl'>AI Nexus</h2>
             </div>
             <div>
-                { theme === 'light' ?  <Button variant={'ghost'} onClick={() => setTheme('dark')}><Moon/></Button> :   <Button variant={'ghost'} onClick={() => setTheme('light')}><Sun/></Button> }
+                { mounted && ( theme === 'light' ?  <Button variant={'ghost'} onClick={() => setTheme('dark')}><Moon/></Button> :   <Button variant={'ghost'} onClick={() => setTheme('light')}><Sun/></Button> )}
             </div>
           </div>
           <div>

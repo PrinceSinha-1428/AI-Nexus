@@ -21,9 +21,8 @@ import { useUser } from "@clerk/nextjs";
 
 const AiMultiModels = () => {
   const [aiModelList, setaiModelList] = useState<ModelConfig[]>(AiModels);
-
-  const { aiSelectedModel, setAiSelectedModel, messages } = useAI();
   const { user } = useUser();
+  const { aiSelectedModel, setAiSelectedModel, messages } = useAI();
 
   const onToggleChange = (model: string, value: boolean) => {
     setaiModelList((prev) =>
@@ -132,25 +131,28 @@ const AiMultiModels = () => {
           )}
           <div className="flex-1 p-4">
             <div className="flex-1 p-4 space-y-2">
-              {messages[model.model]?.map((m, idx) => (
-                <div
-                  key={idx}
-                  className={`p-2 rounded-md ${m.role === "user" ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900"} `}
-                >
-                  {m.role === "assistant" && (
-                    <span className="text-sm text-gray-300">
-                      {m.model ?? model.model}
-                    </span>
-                  )}
-                  {m.loading && (
-                    <>
-                      <Loader className="animate-spin" />
-                      <span>Thinking...</span>
-                    </>
-                  )}
-                  {!m.loading && <h2>{m.content}</h2>}
-                </div>
-              ))}
+              {Array.isArray(messages?.[model.model]) &&
+                messages[model.model].map((m, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-2 rounded-md ${m.role === "user" ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900"} `}
+                  >
+                    {m.role === "assistant" && (
+                      <span className="text-sm text-gray-300">
+                        {m.model ?? model.model}
+                      </span>
+                    )}
+                    {m.loading && (
+                      <>
+                        <Loader className="animate-spin" />
+                        <span>Thinking...</span>
+                      </>
+                    )}
+                    {!m.loading && m && typeof m.content !== "undefined" && (
+                      <h2>{m.content}</h2>
+                    )}
+                  </div>
+                ))}
             </div>
           </div>
         </div>

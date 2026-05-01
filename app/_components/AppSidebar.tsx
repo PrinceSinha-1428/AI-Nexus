@@ -8,16 +8,52 @@ import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import UsageCreditProgress from './UsageCreditProgress';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '@/config/firebase';
+import moment from 'moment';
+import Link from 'next/link';
 
 const AppSidebar = () => {
 
   const { theme, setTheme} = useTheme();
   const [mounted, setMounted] = useState<boolean>(false);
+  const [chatHistory, setChatHistory] = useState<any>([]);
   const { user } = useUser();
+
+  const getChatHistory = async () => {
+    const userEmail = user?.primaryEmailAddress?.emailAddress;
+    if (!userEmail) return;
+    const q = query(collection(db, "chatHistory"), where("userEmail", '==', userEmail));
+    const querySnapsShot = await getDocs(q);
+    const chats: any[] = [];
+    querySnapsShot.forEach((doc) => {
+      chats.push(doc.data());
+    });
+    setChatHistory(chats);
+  };
+  const getLastUserMessage =  (chat: any) => {
+   
+      const allMessages = Object.values(chat?.messages).flat();
+      const userMessages: any = allMessages.filter((msg: any) => msg.role === 'user');
+      const lastUserMsg = userMessages[userMessages.length - 1]?.content || null;
+      const lastUpdated = chat.lastUpdated || Date.now();
+      const formatDate = moment(lastUpdated).fromNow();
+      return {
+        chatId: chat.chatId,
+        message: lastUserMsg,
+        lastUpdated: formatDate
+      }
+  }
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (user?.primaryEmailAddress?.emailAddress) {
+      getChatHistory();
+    }
+  }, [user?.primaryEmailAddress?.emailAddress]);
 
 
   return (
@@ -33,14 +69,14 @@ const AppSidebar = () => {
                 { mounted && ( theme === 'light' ?  <Button variant={'ghost'} onClick={() => setTheme('dark')}><Moon/></Button> :   <Button variant={'ghost'} onClick={() => setTheme('light')}><Sun/></Button> )}
             </div>
           </div>
-          <div>
+          <Link href={'/'}>
             {user ? 
-              <Button className='mt-7 w-full'>+ New Chat</Button>
+              <Button className='mt-7 w-full cursor-pointer'>+ New Chat</Button>
               : <SignInButton mode='modal'>
                   <Button className='mt-7 w-full'>Sign In</Button>
                 </SignInButton>  
           }
-          </div>
+          </Link>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -48,6 +84,19 @@ const AppSidebar = () => {
           <div className='p-3'>
             <h2 className='font-bold text-lg'>Chat</h2>
             {!user && <p className='text-sm text-gray-500'>Sign in to chat mutiple ai models</p>}
+            {chatHistory.map((chat: any, idx: number) => {
+            const lastUserMsgObj = getLastUserMessage(chat);
+            const lastMsg = lastUserMsgObj.message;
+            return (
+              <Link href={'?chat='+chat.chatId} key={idx} className='mt-3 cursor-pointer'>
+                <div className='flex justify-between items-center hover:bg-gray-400 rounded-lg p-3 transition-all duration-200'>
+                  <h2 className='text-lg line-clamp-1'>{lastMsg ? lastMsg : <span className='text-gray-400'>No messages</span>}</h2>
+                  <h2 className='text-sm text-gray-700'>{getLastUserMessage(chat).lastUpdated}</h2>
+                  <hr className='my-3'/>
+                </div>
+              </Link>
+            );
+          })}
           </div>
         </SidebarGroup>
       </SidebarContent>
@@ -68,6 +117,7 @@ const AppSidebar = () => {
          </Button>
           </div>
           }
+         
         </div>
       </SidebarFooter>
     </Sidebar>
